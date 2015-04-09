@@ -5,31 +5,27 @@
 
 ;;; Requirements: HTML5 supported webbrowser!
 
-(import (prefix libencode lib:))
-(use awful)
+(use awful libencode)
 
 (enable-sxml #t)
 (literal-script/style? #t)
 
 (page-css "editor.css")
 
+(define input-handle 
+  (lambda ()
+    (let* ((x ($ 'fcontent as-string))
+	   (iport (open-input-string x))
+	   (y (lib:decode iport))
+	   (_ (close-input-port iport)))
+      y)))
+      
+
 (define-page
   (main-page-path)
   (lambda ()
     (set-page-title! "Bencode Editor")
-    (ajax "hdata" 'meme '()
-	  (lambda ()
-	    (let* ((x ($ 'fcontent as-string))
-		   ;; (iport (open-input-string x))
-		   ;; (y `(b ,(lib:decoder iport)))
-		   ;; (close-input-port iport)
-		   )
-	      (display x)
-	      (newline)
-	      ;; (display y)
-	      ;; (newline)
-	      x))
-	  target: "sformat")
+    (ajax "hdata" 'meme '() input-handle)
     `((ul (@ (class "menu"))
 	  (li (a (@ (href "#")) "File")
 	      (ul 
