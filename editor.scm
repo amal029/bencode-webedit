@@ -1,27 +1,35 @@
+;;; Author: Avinash Malik
+;;; Date: Thu Apr  9 15:26:24 NZST 2015
+
+;;; A Bencode-editor webapp
+
+;;; Requirements: HTML5 supported webbrowser!
+
+(import (prefix libencode lib:))
 (use awful)
-(import libencode)
 
 (enable-sxml #t)
 (literal-script/style? #t)
 
 (page-css "editor.css")
 
-;;; The path name of the file
-(define file-name "")
-
 (define-page
   (main-page-path)
   (lambda ()
     (set-page-title! "Bencode Editor")
-    (ajax "mo" 'myInput 'change
-    	  (lambda ()
-	    (set! file-name ($ 'myInput as-string))
-	    '())
-	  arguments:'((myInput . "$('#myInput').val()"))
-	  success: "$('#target').submit();")
-    (ajax "submit-handler" 'target 'submit
+    (ajax "hdata" 'meme '()
 	  (lambda ()
-	    `(b ,file-name)))
+	    (let* ((x ($ 'fcontent as-string))
+		   ;; (iport (open-input-string x))
+		   ;; (y `(b ,(lib:decoder iport)))
+		   ;; (close-input-port iport)
+		   )
+	      (display x)
+	      (newline)
+	      ;; (display y)
+	      ;; (newline)
+	      x))
+	  target: "sformat")
     `((ul (@ (class "menu"))
 	  (li (a (@ (href "#")) "File")
 	      (ul 
@@ -29,19 +37,16 @@
 		(@ (id "ofile")
 		   (onclick 
 		    "document.getElementById('myInput').click();"))
-		(form (@ (id "target")
-			 (action "/ajax/submit-handler")
-			 (enctype "multipart/form-data")
-			 (method "post"))
-		 (input (@ (type "file")
-			   (id "myInput")
-			   (value "Go")
-			   (style "display:none"))))
+		(input (@ (type "file")
+			  (id "myInput")
+			  (style "display:none")))
 		(li (a (@ (id "mo") (href "#")) 
 		       "Open")))
 	       (li (a (@ (id "mor") (href "#")) "Open Recent"))))
 	  (li (a (@ (href "#")) "Edit")))
-      (div (@ (id "file-input")))))
+      (div (@ (id "meme"))
+	   (textarea (@ (id "sformat"))))))
   use-ajax: #t
   css: "editor.css"
-  no-session: #t)
+  no-session: #t
+  headers: (include-javascript "/html5file.js" "/readinput.js"))
