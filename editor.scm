@@ -5,7 +5,7 @@
 
 ;;; Requirements: HTML5 supported webbrowser!
 
-(use awful libencode)
+(use awful libencode s)
 
 (enable-sxml #t)
 (literal-script/style? #t)
@@ -34,14 +34,10 @@
 			   (equal? (modulo i 2) 0)) hstrl)))
       (if (= (length f) (length s))
 	  (let ((ff (foldl (lambda (l pr)
-			     (let ((_ (display pr))
-				   ;; (p (integer->char
-				   ;;     (string->number
-				   ;; 	(list->string pr))))
-				   )
-			       ;; (cons p l)
-			       l
-			       ))
+			     (let ((p (integer->char
+				       (string->number
+				   	(s-prepend "#x"(list->string pr))))))
+			       (cons p l)))
 			   '() (zip f s))))
 	    (list->string ff))
 	  (error "Malformed URI" (cons (length hstrl)
@@ -51,13 +47,9 @@
   (lambda ()
     (let* ((x ($ 'fcontent as-string))
 	   (iport (open-input-string (hex->ascii x)))
-	   ;; (oport (open-output-file "/tmp/obj.txt"))
-	   ;; (y (lib:decode iport))
-	   )
-      ;; (write-string x #f oport)
+	   (y (lib:decode iport)))
       (close-input-port iport)
-      ;; (close-output-port oport)
-      x)))
+      y)))
       
 
 (define-page
