@@ -3,25 +3,25 @@ window.onload = function() {
 
     fileInput.addEventListener('change', function(e) {
 	var file = fileInput.files[0];
-	var textType = /text.*/;
 	console.log(file);
-
-	if (file.type.match(textType)) {
-	    var reader = new FileReader();
-
-	    reader.onload = function(e) {
-		console.log(reader.result);
-		$.ajax({
-		    type:"POST",
-		    url:"/ajax/hdata",
-		    data: {'fcontent':reader.result},
-		    success:function(response){
-			$("#sformat").html(response);
-		    }
-		});
+	var reader = new FileReader();
+	reader.onload = function(e) {
+	    var output = "";
+	    for(i=0;i<reader.result.length;++i){
+		output += reader.result.charCodeAt(i).toString(16);
 	    }
+	    // console.log(output);
+	    $.ajax({
+		type:"POST",
+		url:"/ajax/hdata",
+		// data: {'fcontent':reader.result},
+		data: {'fcontent':output},
+		success:function(response){
+		    $("#sformat").html(response);
+		}
+	    });
+	}
 
-	    reader.readAsText(file);	
-	} else {}
+	reader.readAsBinaryString(file);	
     });
 }
