@@ -33,23 +33,30 @@
 			 (lambda (_ i)
 			   (equal? (modulo i 2) 0)) hstrl)))
       (if (= (length f) (length s))
-	  (let ((ff (fold (lambda (l x y)
-			    (let ((p (number->char
-				      (string->number
-				       (list->string
-					(cons x y))))))
-			      (cons p l)))
-			  (reverse f) (reverse s))))
+	  (let ((ff (foldl (lambda (l pr)
+			     (let ((_ (display pr))
+				   ;; (p (integer->char
+				   ;;     (string->number
+				   ;; 	(list->string pr))))
+				   )
+			       ;; (cons p l)
+			       l
+			       ))
+			   '() (zip f s))))
 	    (list->string ff))
 	  (error "Malformed URI" (cons (length hstrl)
-				  (cons (length f) (length s))))))))
+				       (cons (length f) (length s))))))))
 
 (define input-handle 
   (lambda ()
     (let* ((x ($ 'fcontent as-string))
 	   (iport (open-input-string (hex->ascii x)))
-	   (y (lib:decode iport)))
+	   ;; (oport (open-output-file "/tmp/obj.txt"))
+	   ;; (y (lib:decode iport))
+	   )
+      ;; (write-string x #f oport)
       (close-input-port iport)
+      ;; (close-output-port oport)
       x)))
       
 
