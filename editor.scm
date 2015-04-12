@@ -12,21 +12,6 @@
 
 (page-css "editor.css")
 
-(define (partition-indexed f l)
-  (letrec ((part (lambda (fi se count ll)
-		   (if (null? ll)
-		       (values fi se)
-		       (cond
-			((f (car ll) count)
-			 (part (cons (car ll) fi) se
-			       (+ count 1)
-			       (cdr ll)))
-			(else
-			 (part fi (cons (car ll) se)
-			       (+ count 1)
-			       (cdr ll))))))))
-    (part '() '() 0 l)))
-
 (define (hex->ascii hstr)
   (let ((hstrl (string->list hstr)))
     (let-values (((f s) (partition-indexed
