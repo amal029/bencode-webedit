@@ -5,7 +5,7 @@
 
 ;;; Requirements: HTML5 supported webbrowser!
 
-(use awful libencode s)
+(use awful libencode s json)
 
 (enable-sxml #t)
 (literal-script/style? #t)
@@ -33,24 +33,30 @@
 			 (lambda (_ i)
 			   (equal? (modulo i 2) 0)) hstrl)))
       (if (= (length f) (length s))
-	  (let ((ff (foldl (lambda (l pr)
-			     (let ((p (integer->char
-				       (string->number
-				   	(s-prepend "#x"(list->string pr))))))
-			       (cons p l)))
+	  (let ((ff (foldl
+		     (lambda (l pr)
+		       (let ((p
+			      (integer->char
+			       (string->number
+				(s-prepend "#x"(list->string pr))))))
+			 (cons p l)))
 			   '() (zip f s))))
 	    (list->string ff))
-	  (error "Malformed URI" (cons (length hstrl)
-				       (cons (length f) (length s))))))))
+	  (error "Malformed URI"
+		 (cons (length hstrl)
+		       (cons (length f) (length s))))))))
 
 (define input-handle 
   (lambda ()
     (let* ((x ($ 'fcontent as-string))
 	   (iport (open-input-string (hex->ascii x)))
-	   (y (lib:decode iport)))
+	   (oport (open-output-string))
+	   (_ (json-write (lib:decode iport) oport))
+	   (y (get-output-string oport)))
       (close-input-port iport)
+      (close-output-port oport)
       y)))
-      
+
 
 (define-page
   (main-page-path)
