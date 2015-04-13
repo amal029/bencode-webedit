@@ -1,3 +1,18 @@
+// The function that finds if it is a torrent file
+function isATorrentFile(file) {
+    var ret = false;
+    if(file.name.match(/.torrent/i)) ret = true;
+    return ret;
+}
+
+// Generate client side html for torrent file
+function torrentFileHtml (file, response){
+}
+
+// Generate client side html for non-torret file.
+function bencodeHtml(file, response){
+}
+
 window.onload = function() {
     var fileInput = document.getElementById('myInput');
 
@@ -14,15 +29,16 @@ window.onload = function() {
 		else
 		    output += temp;
 	    }
-	    // console.log(output);
-	    console.log(reader.result.length);
-	    console.log(output.length);
+	    var res = ""; 	// The json response from server
+	    // Ask for the HTML form template
 	    $.ajax({
 		type:"POST",
-		url:"/ajax/hdata",
-		data: {'fcontent':output},
+		url:"/ajax/myhtml",
+		data: {'fname':file.name,
+		       'fcontent':output,
+		       'torrentfile':isATorrentFile(file)},
 		success:function(response){
-		    $("#sformat").html(response);
+		    $("#file").html(response);
 		}
 	    });
 	}
