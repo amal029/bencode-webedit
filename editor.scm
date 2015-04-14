@@ -6,6 +6,7 @@
 ;;; Requirements: HTML5 supported webbrowser!
 
 (use awful libencode s json)
+(require-extension section-combinators)
 
 (enable-sxml #t)
 (literal-script/style? #t)
@@ -43,6 +44,19 @@
     (cons (car ll) (filter-pieces (cdr ll))))
    (else ll)))
 
+;;; The function that gives back
+;;; the components to display on the torrent-editor-page.
+(define (tget ll name)
+  (cond
+   ((vector? ll)
+    (find (lambda (x) (not (equal? x #f)))
+	       (map (right-section tget name)
+		    (vector->list ll))))
+   ((and (pair? ll) (equal? name (car ll))) (cdr ll))
+   ((list? ll) (find (lambda (x) (not (equal? x #f)))
+			  (map (right-section tget name) ll)))
+   ((pair? ll) (tget (cdr ll) name))
+   (else #f)))
 
 ;;; This function returns the html code for torrent file
 (define (output-html)
@@ -57,13 +71,28 @@
   (lambda (fname content)
     (let* ((iport (open-input-string (hex->ascii content)))
 	   (z (lib:decode iport))
-	   (get-annouce-list (lambda () ""))
-	   (get-created-on (lambda () ""))
-	   (get-created-by (lambda () ""))
+	   (z (filter-pieces z))
+	   (get-annouce-list (lambda ()
+			       (let* ((x (tget z "announce-list"))
+				      (x (if (not x) ""
+					     (flatten x))))
+				 "")))
+	   (get-created-on (lambda ()
+			     (let ((x (tget z "creation date")))
+			       (if (not x) "" x))))
+	   (get-created-by (lambda ()
+			     (let ((x (tget z "created by")))
+			       (if (not x) "" x))))
 	   (get-comment (lambda () ""))
-	   (get-piece-length (lambda () ""))
-	   (get-file-name (lambda () ""))
-	   (get-file-size (lambda () "")))
+	   (get-piece-length (lambda ()
+			       (let ((x (tget z "piece length")))
+				 (if (not x) "" x))))
+	   (get-file-name (lambda ()
+			    (let ((x (tget z "name")))
+			      (if (not x) "" x))))
+	   (get-file-size (lambda ()
+			    (let ((x (tget z "length")))
+			      (if (not x) "" x)))))
       (close-input-port iport)
       `((form (h3 "Torrent")
 	      (hr)

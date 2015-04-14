@@ -5,14 +5,6 @@ function isATorrentFile(file) {
     return ret;
 }
 
-// Generate client side html for torrent file
-function torrentFileHtml (file, response){
-}
-
-// Generate client side html for non-torret file.
-function bencodeHtml(file, response){
-}
-
 window.onload = function() {
     var fileInput = document.getElementById('myInput');
 
