@@ -38,3 +38,15 @@ window.onload = function() {
 	reader.readAsBinaryString(file);	
     });
 }
+
+// The htorrent update submitter
+function torrentSubmit(event){
+    console.log($(this));
+    event.preventDefault();
+    // Get some values from elements on the page:
+    var $form = $( "#torrentForm" );
+    var tfn = $form.find( "input[id='torrent-file-name']" ).val(),
+	url = $form.attr( "action" );
+    console.log(tfn);
+    console.log(url);
+}
