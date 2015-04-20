@@ -63,7 +63,7 @@ function torrentSubmit(event){
 	       'tcom':tcom,
 	       'turls':tvals},
 	success:function(response){
-	    alert(response);
+	    $("#file").html(response);
 	}
     });
 }

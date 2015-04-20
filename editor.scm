@@ -5,7 +5,7 @@
 
 ;;; Requirements: HTML5 supported webbrowser!
 
-(use awful libencode s json)
+(use awful libencode s json srfi-19)
 (require-extension section-combinators)
 
 (enable-sxml #t)
@@ -68,16 +68,47 @@
    ((pair? ll) (tget (cdr ll) name))
    (else #f)))
 
+;;; This function updates the torrent file with the new information.
+;;; FIXME: Add new pairs if they don't already exist!
+(define (tupdate tcby tcon tcom turls ll)
+  (cond
+   ((vector? ll) (list->vector
+		  (map (left-section tupdate tcby tcon tcom turls)
+		       (vector->list ll))))
+   ((list? ll) (map (left-section tupdate tcby tcon tcom turls) ll))
+   ((pair? ll)
+    (cond
+     ((equal? "announce-list" (car ll))
+      (cons (car ll) (if (not turls) (cdr ll) turls)))
+     ((equal? "created by" (car ll))
+      (cons (car ll) (if (not tcby) (cdr ll) tcby)))
+     ((equal? "creation date" (car ll))
+      (cons (car ll) (if (not tcon) (cdr ll) tcon)))
+     (else (cons (car ll) (tupdate tcby tcon tcom turls (cdr ll))))))
+   (else ll)))
+
 ;;; This function returns a string, which is pretty much the updated
 ;;; torrent file.
 (define (update-torrent)
-  (let ((file-name ($ 'fname as-string))
-	(content ($ 'fcontent as-string))
-	(tcby ($ 'tcby as-string))
-	(tcon ($ 'tcon as-string))
-	(tcom ($ 'tcom as-string))
-	(turls ($ 'turls as-list)))
-    "Done!!"))
+  (let* ((file-name ($ 'fname as-string))
+	 (content ($ 'fcontent as-string))
+	 (tcby ($ 'tcby as-string))
+	 (tcon (time->seconds
+		(date->time (string->date ($ 'tcon as-string)))))
+	 (tcom ($ 'tcom as-string))
+	 (turls ($ 'turls as-list))
+	 (iport (open-input-string (hex->ascii content)))
+	 (z (lib:decode iport))
+	 (_ (close-input-port iport))
+	 (y (tupdate tcby tcon tcom turls z))
+	 (res (lib:encode y))
+	 (oport (open-output-file (++ "./downloads/" file-name))))
+    (write-string res #f oport)
+    (close-output-port oport)
+    `((h1 ,(++ "Please click the download link below "
+	      "to save the updated torrent file to disk"))
+      (br)
+      (a (@ (href ,(++ "/downloads/" file-name))) ,file-name))))
 
 ;;; This function returns the html code for torrent file
 (define (output-html)
@@ -101,7 +132,9 @@
 				 x)))
 	   (get-created-on (lambda ()
 			     (let ((x (tget z "creation date")))
-			       (if (not x) "" (seconds->string x)))))
+			       (if (not x) ""
+				   (date->string
+				    (seconds->date x))))))
 	   (get-created-by (lambda ()
 			     (let ((x (tget z "created by")))
 			       (if (not x) "" x))))
@@ -132,12 +165,15 @@
 	     ,(let* ((x (get-annouce-list))
 		     (msize (apply max (map string-length x))))
 		(foldi (lambda (i l x)
-			  (cons `(div (input
-				       (@ (type "text")
-					  (value ,x)
-					  (size ,msize)
-					  (id ,(++ "url" (number->string i)))))
-				      (br) (br)) l))
+			 (cons
+			  `(div (input
+				 (@
+				  (type "text")
+				  (value ,x)
+				  (size ,msize)
+				  (id
+				   ,(++ "url" (number->string i)))))
+				(br) (br)) l))
 			'() x))
 	     
 	     (br) (br) (br)
@@ -146,7 +182,9 @@
 	     (div (b "Created on:"))
 	     (div (input (@ (id "torrent-created-on")
 			    (type "text")
-			    (value ,(get-created-on)))))
+			    (value ,(get-created-on))
+			    (size ,(string-length
+				    (get-created-on))))))
 	     (br)
 	     (div (b "Created by:"))
 	     (div (input (@ (id "torrent-created-by")
@@ -219,7 +257,7 @@
     (ajax "myhtml" 'file '() output-html
 	  use-sxml: #t)
     (ajax "updateTorrent" 'file '() update-torrent
-	  use-sxml: #f)
+	  use-sxml: #t)
     `((ul (@ (class "menu"))
 	  (li (a (@ (href "#")) "File")
 	      (ul 
