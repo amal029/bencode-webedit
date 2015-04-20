@@ -13,6 +13,16 @@
 
 (page-css "editor.css")
 
+(define (foldi func init lst)
+  (letrec ((ffold (lambda (counter func init lst)
+		    (cond
+		     ((null? lst) init)
+		     (else (ffold (+ 1 counter)
+				  func
+				  (func counter init (car lst))
+				  (cdr lst)))))))
+    (ffold 0 func init lst)))
+
 (define (hex->ascii hstr)
   (let ((hstrl (string->list hstr)))
     (let-values (((f s) (partition-indexed
@@ -57,6 +67,17 @@
 			  (map (right-section tget name) ll)))
    ((pair? ll) (tget (cdr ll) name))
    (else #f)))
+
+;;; This function returns a string, which is pretty much the updated
+;;; torrent file.
+(define (update-torrent)
+  (let ((file-name ($ 'fname as-string))
+	(content ($ 'fcontent as-string))
+	(tcby ($ 'tcby as-string))
+	(tcon ($ 'tcon as-string))
+	(tcom ($ 'tcom as-string))
+	(turls ($ 'turls as-list)))
+    "Done!!"))
 
 ;;; This function returns the html code for torrent file
 (define (output-html)
@@ -110,13 +131,14 @@
 	     (div (b "URL: "))
 	     ,(let* ((x (get-annouce-list))
 		     (msize (apply max (map string-length x))))
-		(foldl (lambda (l x)
-			 (cons `(div (input
-				      (@ (type "text")
-					 (value ,x)
-					 (size ,msize)))
-				     (br) (br)) l))
-		       '() x))
+		(foldi (lambda (i l x)
+			  (cons `(div (input
+				       (@ (type "text")
+					  (value ,x)
+					  (size ,msize)
+					  (id ,(++ "url" (number->string i)))))
+				      (br) (br)) l))
+			'() x))
 	     
 	     (br) (br) (br)
 	     (h3 "Metadata")
@@ -196,6 +218,8 @@
 	  use-sxml: #f)
     (ajax "myhtml" 'file '() output-html
 	  use-sxml: #t)
+    (ajax "updateTorrent" 'file '() update-torrent
+	  use-sxml: #f)
     `((ul (@ (class "menu"))
 	  (li (a (@ (href "#")) "File")
 	      (ul 
