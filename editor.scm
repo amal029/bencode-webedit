@@ -108,7 +108,8 @@
     `((h1 ,(++ "Please click the download link below "
 	      "to save the updated torrent file to disk"))
       (br)
-      (a (@ (href ,(++ "/downloads/" file-name))) ,file-name))))
+      (a (@ (class "pure-button pure-button-primary")
+	  (href ,(++ "/downloads/" file-name))) "Download"))))
 
 ;;; This function returns the html code for torrent file
 (define (output-html)
@@ -150,6 +151,7 @@
 			      (if (not x) "" x)))))
       (close-input-port iport)
       `(form (@ (id "torrentForm")
+		(class "pure-form")
 		(action "/ajax/updateTorrent")
 		(onsubmit "torrentSubmit(event)"))
 	     (h3 "Torrent")
@@ -174,7 +176,7 @@
 				  (id
 				   ,(++ "url" (number->string i)))))
 				(br) (br)) l))
-			'() x))
+		       '() x))
 	     
 	     (br) (br) (br)
 	     (h3 "Metadata")
@@ -223,10 +225,11 @@
 			     ,(/ (get-file-size) 1048576)))))
 	     (br) (br)
 	     (div
-	      (input (@
-		      (id "update-button")
-		      (type "submit")
-		      (value "Update!"))))))))
+	      (button (@ (class "pure-button pure-button-primary")
+			 (id "update-button")
+			 (type "submit")
+			 (value "Update!"))
+		      "Update!"))))))
 
 ;;; The non-torrent file html
 (define non-torrent-file
@@ -251,7 +254,6 @@
 (define-page
   (main-page-path)
   (lambda ()
-    (set-page-title! "Bencode Editor")
     (ajax "hdata" 'meme '() input-handle
 	  use-sxml: #f)
     (ajax "myhtml" 'file '() output-html
@@ -275,6 +277,14 @@
       (div (@ (id "meme")))
       (div (@ (id "file")))))
   use-ajax: #t
-  css: "editor.css"
+  css: '("http://yui.yahooapis.com/pure/0.6.0/pure-min.css"
+	 "editor.css")
   no-session: #t
-  headers: (include-javascript "/html5file.js" "/readinput.js"))
+  title: "Bencode-editor"
+  headers: '((script (@ (type "text/javascript")
+			(src "html5file.js")))
+	     (script (@ (type "text/javascript")
+			(src "readinput.js")))
+	     (meta (@ (name "viewport")
+		      (content
+		       "width=device-width, initial-scale=1")))))
